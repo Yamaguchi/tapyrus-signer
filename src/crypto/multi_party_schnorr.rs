@@ -208,6 +208,12 @@ impl LocalSig {
         vss_private_keys: &Vec<VerifiableSS>,
         vss_ephemeral_keys: &Vec<VerifiableSS>,
     ) -> Result<VerifiableSS, Error> {
+        println!("======= verify_local_sigs (start)========");
+        println!("{:?}", gamma_vec.iter().map(|l| (l.e, l.gamma_i)).collect::<Vec<(FE, FE)>>());
+        println!("{:?}", parties_index_vec);
+        println!("{:?}", vss_private_keys);
+        println!("{:?}", vss_ephemeral_keys);
+        println!("======= verify_local_sigs (end)========");
         //parties_index_vec is a vector with indices of the parties that are participating and provided gamma_i for this step
         // test that enough parties are in this round
         assert!(parties_index_vec.len() > vss_private_keys[0].parameters.threshold);
@@ -241,11 +247,14 @@ impl LocalSig {
         let correct_ss_verify = (0..parties_index_vec.len())
             .map(|i| {
                 let gamma_i_g = &g * &gamma_vec[i].gamma_i;
+                println!("verify_local_sigs index={} {:?} {:?}", parties_index_vec[i] + 1, gamma_i_g, vss_sum.get_point_commitment(parties_index_vec[i] + 1));
                 vss_sum
                     .validate_share_public(&gamma_i_g, parties_index_vec[i] + 1)
                     .is_ok()
             })
             .collect::<Vec<bool>>();
+
+        println!("verify_local_sigs: result={:?}", correct_ss_verify);
 
         match correct_ss_verify.iter().all(|x| x.clone() == true) {
             true => Ok(vss_sum),

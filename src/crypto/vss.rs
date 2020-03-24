@@ -16,6 +16,7 @@ use std::str::FromStr;
 // | positive secret      | 32        | secret value for r to perform secret sharing scheme                                               |
 // | negative commitments | 64 \* len | commitments for secret value for (n - r). an array of the points on the elliptic curve secp256k1. |
 // | negative secret      | 32        | secret value for (n - r) to perform secret sharing scheme                                         |
+#[derive(Clone, Debug)]
 pub struct Vss {
     pub sender_public_key: PublicKey,
     pub receiver_public_key: PublicKey,
@@ -65,6 +66,12 @@ impl Commitment {
 
     pub fn to_point(&self) -> GE {
         ECPoint::from_coor(&self.x, &self.y)
+    }
+}
+
+impl fmt::Debug for Commitment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.x.to_hex(), self.y.to_hex())
     }
 }
 

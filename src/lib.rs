@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 extern crate bitcoin;
+
 extern crate secp256k1;
 #[macro_use]
 extern crate log;
@@ -19,6 +20,7 @@ extern crate derive_builder;
 extern crate sha2;
 
 pub mod blockdata;
+pub mod cli;
 pub mod command_args;
 pub mod crypto;
 pub mod errors;

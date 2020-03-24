@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-mod message_processor;
+pub mod message_processor;
 mod node_parameters;
 pub mod node_state;
-mod utils;
+pub mod utils;
 
 pub use crate::signer_node::node_parameters::NodeParameters;
 pub use crate::signer_node::node_state::NodeState;

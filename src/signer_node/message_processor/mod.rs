@@ -1,5 +1,5 @@
 mod process_blockparticipants;
-mod process_blocksig;
+pub mod process_blocksig;
 mod process_blockvss;
 mod process_candidateblock;
 mod process_completedblock;
@@ -30,7 +30,7 @@ use curv::cryptographic_primitives::secret_sharing::feldman_vss::VerifiableSS;
 use curv::elliptic::curves::traits::{ECPoint, ECScalar};
 use curv::{BigInt, FE};
 
-fn get_valid_block(state: &NodeState, blockhash: SHA256Hash) -> Result<&Block, Error> {
+pub fn get_valid_block(state: &NodeState, blockhash: SHA256Hash) -> Result<&Block, Error> {
     let block_opt = match state {
         NodeState::Master {
             candidate_block, ..
