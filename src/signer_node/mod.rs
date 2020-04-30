@@ -415,7 +415,7 @@ impl<T: TapyrusApi, C: ConnectionManager> SignerNode<T, C> {
             Ok(GetBlockchainInfoResult {
                 blocks: block_height,
                 ..
-            }) => block_height,
+            }) => block_height + 1,
             _ => match self.current_state {
                 NodeState::Idling { block_height } => block_height + 1,
                 NodeState::Member { block_height, .. } => block_height + 1,
@@ -435,7 +435,7 @@ impl<T: TapyrusApi, C: ConnectionManager> SignerNode<T, C> {
             return;
         }
 
-        let next_master_index = next_master_index(&self.current_state, &self.params);
+        let next_master_index = next_master_index(&self.current_state, &self.params, block_height);
 
         log::info!(
             "Start next round: self_index={}, master_index={}",
@@ -474,7 +474,7 @@ where
     }
 }
 
-pub fn next_master_index<T>(state: &NodeState, params: &NodeParameters<T>) -> usize
+pub fn next_master_index<T>(state: &NodeState, params: &NodeParameters<T>, block_height: u64) -> usize
 where
     T: TapyrusApi,
 {
@@ -488,8 +488,7 @@ where
         } => *next_master_index,
     };
 
-    let block_height = state.block_height();
-    next % params.pubkey_list(block_height + 1).len()
+    next % params.pubkey_list(block_height).len()
 }
 
 pub fn is_master<T>(sender_id: &SignerID, state: &NodeState, params: &NodeParameters<T>) -> bool

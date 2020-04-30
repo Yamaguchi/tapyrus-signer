@@ -29,7 +29,7 @@ where
     NodeState::RoundComplete {
         master_index: master_index(prev_state, params)
             .expect("Previous state getting round complete should have round master"),
-        next_master_index: next_master_index(prev_state, params),
+        next_master_index: next_master_index(prev_state, params, prev_state.block_height()),
         block_height: prev_state.block_height(),
     }
 }
