@@ -14,6 +14,7 @@ use crate::signer_node::ToShares;
 use crate::signer_node::ToVerifiableSS;
 use crate::util::*;
 use secp256k1::rand::thread_rng;
+use secp256k1::PublicKey;
 use tapyrus::hash_types::BlockSigHash;
 
 pub struct Sign;
@@ -58,9 +59,11 @@ impl Sign {
             .iter()
             .map(|vss| vss.commitments[0])
             .collect();
+        let public_keys = y_vec.iter().map(|point| point.get_element()).collect();
         match correct_ss {
             true => {
-                let y = sum_point(&y_vec);
+                let y: PublicKey = sum_point(&public_keys);
+                let y: GE = ECPoint::from_bytes(&y.serialize_uncompressed()[1..]).unwrap();
                 let x_i = secret_shares
                     .to_shares()
                     .iter()

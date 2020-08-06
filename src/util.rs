@@ -1,14 +1,16 @@
-use curv::GE;
+use secp256k1::PublicKey;
 use std::convert::TryFrom;
 use std::os::raw::c_int;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
-pub fn sum_point(points: &Vec<GE>) -> GE {
+pub fn sum_point(points: &Vec<PublicKey>) -> PublicKey {
     let mut iter = points.iter();
     let head = iter.next().unwrap();
     let tail = iter;
-    tail.fold(head.clone(), |acc, x| acc + x)
+    tail.fold(head.clone(), |sum, point| {
+        sum.combine(&point).expect("failed to combine PublicKey")
+    })
 }
 
 const STOP_SIGNALS: [usize; 6] = [
@@ -49,29 +51,47 @@ pub fn signal_to_string(signal: usize) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use secp256k1::constants::{GENERATOR_X, GENERATOR_Y};
     use std::sync::atomic::Ordering;
 
     #[test]
     fn test_sum_point() {
-        use curv::elliptic::curves::secp256_k1::*;
-        use curv::elliptic::curves::traits::ECPoint;
-        use curv::elliptic::curves::traits::ECScalar;
-        use curv::BigInt;
-
         // scalar values
-        let s1 = ECScalar::from(&BigInt::from(1));
-        let s2 = ECScalar::from(&BigInt::from(2));
-        let s3 = ECScalar::from(&BigInt::from(3));
+        let s1 = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1,
+        ];
+        let s2 = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 2,
+        ];
+        let s3 = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 3,
+        ];
+
+        let mut v = vec![4 as u8];
+        v.extend(GENERATOR_X.as_ref());
+        v.extend(GENERATOR_Y.as_ref());
+        let generator = PublicKey::from_slice(&v).unwrap();
 
         // point
-        let p1 = GE::generator() * &s1;
-        let p2 = GE::generator() * &s2;
-        let p3 = GE::generator() * &s3;
+        let secp = secp256k1::Secp256k1::new();
+        let mut p1 = generator;
+        p1.mul_assign(&secp, &s1).unwrap();
+        let mut p2 = generator;
+        p2.mul_assign(&secp, &s2).unwrap();
+        let mut p3 = generator;
+        p3.mul_assign(&secp, &s3).unwrap();
 
         let sum = sum_point(&vec![p1, p2, p3]);
 
-        let s6 = ECScalar::from(&BigInt::from(6));
-        let p6 = GE::generator() * &s6;
+        let s6 = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 6,
+        ];
+        let mut p6 = generator;
+        p6.mul_assign(&secp, &s6).unwrap();
         assert_eq!(sum, p6);
     }
 
